@@ -2,12 +2,21 @@ import { LaunchType, Toast, launchCommand, showHUD, showToast } from "@raycast/a
 import { stopExternalPlayback } from "./utils/audio-player";
 import { clearPlaybackState, readPlaybackState } from "./utils/playback-state";
 import { getLastReadingSession } from "./utils/reading-session";
+import { clearNowPlaying, getNowPlaying, requestPlaybackStop } from "./utils/mimo-playback-state";
 
 export default async function StopReading() {
+  const mimoState = await getNowPlaying();
+  await requestPlaybackStop();
   const stopped = stopExternalPlayback();
 
   if (stopped) {
-    await clearPlaybackState();
+    await Promise.all([clearPlaybackState(), clearNowPlaying()]);
+    await showHUD("Playback stopped");
+    return;
+  }
+
+  if (mimoState?.status === "playing" || mimoState?.status === "synthesizing") {
+    await clearNowPlaying();
     await showHUD("Playback stopped");
     return;
   }

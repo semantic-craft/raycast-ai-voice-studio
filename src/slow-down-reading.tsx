@@ -9,8 +9,15 @@ import {
   writePlaybackSpeed,
 } from "./utils/playback-speed";
 import { getLastReadingSession, saveReadingSession, type ReadingSession } from "./utils/reading-session";
+import { runMimoSpeedDown } from "./mimo-speed-down";
+import { getDefaultProvider } from "./utils/provider";
 
 export default async function SlowDownReading() {
+  if (getDefaultProvider() === "mimo") {
+    await runMimoSpeedDown();
+    return;
+  }
+
   const live = await readPlaybackState();
   const session = await getLastReadingSession();
   const isLiveOrPaused =

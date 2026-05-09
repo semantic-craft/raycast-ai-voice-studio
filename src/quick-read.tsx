@@ -6,8 +6,15 @@ import { playReadingSession } from "./utils/reading-runner";
 import { buildDefaultOptionsFromPrefs } from "./utils/voice-preferences";
 import { presentCommandError, showResumeSuggestion } from "./utils/errors";
 import { clearPlaybackState, readPlaybackState } from "./utils/playback-state";
+import { runMimoQuickRead } from "./mimo-quick-read";
+import { getDefaultProvider } from "./utils/provider";
 
 export default async function QuickRead() {
+  if (getDefaultProvider() === "mimo") {
+    await runMimoQuickRead();
+    return;
+  }
+
   // Toggle: if our afplay is already running, stop it and return.
   const wasPlaying = stopExternalPlayback();
   if (wasPlaying) {

@@ -1,4 +1,24 @@
-# MiniMax TTS Changelog
+# AI Voice Studio Changelog
+
+## [Unreleased]
+
+### Changed
+- Renamed the extension from `MiniMax TTS` to `AI Voice Studio`.
+- Renamed the package slug from `minimax-tts` to `ai-voice-studio`.
+- Added a shared **Default TTS Provider** preference for provider-aware Quick Read and speed controls.
+- Re-labeled MiniMax preferences and commands so they remain clear inside a multi-provider extension.
+
+### Added
+- Added Xiaomi MiMo as a second TTS provider.
+- Added MiMo commands: TTS Studio, Quick Read with MiMo, Read with MiMo Voice, Set MiMo Quick Read Voice, and MiMo Reading Status.
+- Added MiMo provider files for API calls, voices, expressive controls, chunking, status, voice override storage, and lookahead playback.
+- Added MiMo extension icons.
+- Extended the shared audio player to support WAV playback, playback-rate arguments, and abort signals.
+
+### Verified
+- `npm run build`
+- `npm run lint`
+- `npx tsc --noEmit`
 
 ## [Initial Version] - {PR_MERGE_DATE}
 

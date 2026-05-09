@@ -12,15 +12,22 @@ export class AudioPlayer {
   private currentProcess: ChildProcess | null = null;
   private tempFiles: string[] = [];
   private stopped = false;
+  private abortController = new AbortController();
+
+  get signal(): AbortSignal {
+    return this.abortController.signal;
+  }
 
   /**
    * Play a single base64-encoded audio chunk.
    */
-  async playAudio(base64Audio: string): Promise<void> {
-    const tempPath = this.saveTempFile(base64Audio);
+  async playAudio(base64Audio: string, format = "mp3", playbackRate = 1): Promise<void> {
+    if (this.stopped) return;
+
+    const tempPath = this.saveTempFile(base64Audio, format);
 
     return new Promise<void>((resolve, reject) => {
-      const proc = spawn("afplay", [tempPath]);
+      const proc = spawn("afplay", buildAfplayArgs(tempPath, playbackRate));
       this.currentProcess = proc;
       const myPid = proc.pid;
 
@@ -64,6 +71,9 @@ export class AudioPlayer {
    */
   stopPlayback(): void {
     this.stopped = true;
+    if (!this.abortController.signal.aborted) {
+      this.abortController.abort();
+    }
     if (this.currentProcess) {
       const proc = this.currentProcess;
       this.currentProcess = null;
@@ -87,12 +97,13 @@ export class AudioPlayer {
     this.tempFiles = [];
   }
 
-  private saveTempFile(base64Audio: string): string {
+  private saveTempFile(base64Audio: string, format: string): string {
     const buffer = Buffer.from(base64Audio, "base64");
     if (buffer.length === 0) {
       throw new Error("Decoded audio data is empty");
     }
-    const fileName = `minimax-tts-${randomUUID()}.mp3`;
+    const extension = format.replace(/[^a-z0-9]/gi, "").toLowerCase() || "mp3";
+    const fileName = `ai-voice-studio-${randomUUID()}.${extension}`;
     const filePath = join(tmpdir(), fileName);
     writeFileSync(filePath, new Uint8Array(buffer));
     this.tempFiles.push(filePath);
@@ -109,6 +120,15 @@ export class AudioPlayer {
     }
     this.tempFiles = this.tempFiles.filter((f) => f !== filePath);
   }
+}
+
+function buildAfplayArgs(filePath: string, playbackRate: number): string[] {
+  const normalizedRate = Number.isFinite(playbackRate) && playbackRate > 0 ? playbackRate : 1;
+  if (Math.abs(normalizedRate - 1) < 0.001) {
+    return [filePath];
+  }
+
+  return ["-r", normalizedRate.toFixed(2), "-q", "1", filePath];
 }
 
 // ---- PID file helpers for cross-command stop ----
